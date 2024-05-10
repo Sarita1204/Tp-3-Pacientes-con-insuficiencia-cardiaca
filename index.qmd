@@ -1,0 +1,120 @@
+---
+title: "Pacientes con insuficiencia cardíaca"
+author: Sarita Venegas V
+format: html
+toc: true
+lang: es
+theme: flaty
+---
+
+# Introducción
+Este documento presenta registros de pacientes que sufrieron insuficiencia cardíaca, teniendo los datos de 13 características clínicas.
+Datos de parte del artículo (Chicco, D., Jurman, G. Machine learning can predict survival of patients with heart failure from serum creatinine and ejection fraction alone. BMC Med Inform Decis Mak 20, 16 (2020).)
+
+# Carga de paquetes
+
+```{r}
+#| label: carga-paquetes
+#| message: false
+#| warning: false
+
+library(knitr)
+library(tidyverse)
+```
+
+# Carga de datos
+
+```{r}
+#| label: carga-datos
+
+pacientes <- read.csv("heart_failure_clinical_records_dataset.csv")
+```
+
+# Consulta 1
+
+###### Hombres mayores de 70 años, diabéticos y no anémicos, con las siguientes columnas correspondientes:
+ * Sexo, 
+ * Edad 
+ * Diabetes
+ * Anemia 
+ * Presión arterial alta (presión)
+
+```{r}
+#| label: consulta-01
+ 
+
+pacientes |> 
+  filter(sex == 1, age > 70, diabetes == 1, anaemia == 0) |>
+  select(sexo = sex,
+         edad = age, 
+         diabetes = diabetes, anemia = anaemia, 
+         presion = high_blood_pressure) |> 
+  arrange(desc(edad))|>
+    kable()
+```
+
+# Consulta 2
+
+###### Mujeres con fracción de eyección (f.eyeccion) entre 20 y 25, con las siguentes columnas correspondientes:
+* Sexo 
+* Fracción
+* Anemia 
+* Diabetes
+
+```{r}
+#| label: consulta-02
+
+pacientes |>
+filter(sex == 0, ejection_fraction >= 20 & ejection_fraction <= 25) |>
+  select(sexo = sex,
+         f.eyección = ejection_fraction, 
+         anemia = anaemia, 
+         diabetes = diabetes)|>
+  arrange(desc(f.eyección)) |> 
+  kable()
+  
+```
+
+# Consulta 3
+
+###### Promedio de creatinina sérica (promedio.c.s) de pacientes fallecidos (fallecidos = 1) y pacientes sobrevivientes (fallecidos = 0), con las siguentes columnas correspondientes: 
+* Fallecidos (sobrevivientes = 0)
+* Promedio de creatinina sérica 
+
+```{r}
+#| label: consulta-03
+
+pacientes |>
+  select(fallecidos = DEATH_EVENT,
+          promedio.c.s = serum_creatinine)|>
+  group_by(fallecidos) |>
+  summarise(promedio.c.s = mean(promedio.c.s, fallecidos = 1 &
+   mean(promedio.c.s, fallecidos = 0))) |> 
+  kable()
+
+```
+
+# Consulta 4
+###### Valor máximo de creatinina sérica (valor.c.s) de las mujeres anémicas o diabéticas, con la columna correspondientes:
+* valor máximo de creatinina sérica (valor.c.s)
+
+```{r}
+#| label: consulta-04
+
+pacientes |> 
+  filter(sex == 0, anaemia == 1,  diabetes == 1) |>
+ select(valor.c.s = serum_creatinine,
+         genero = sex,
+         anemia = anaemia,
+         diabetes = diabetes)|> 
+    summarise(valor.c.s = max(valor.c.s, anemia = 1 | max(valor.c.s, diabetes = 1))) |> 
+  kable()
+```
+
+
+
+
+
+
+
+
